@@ -9,8 +9,9 @@ Iden=[1 1 1 0 0 0]';
 D=2*mu*eye(6) + lambda*Iden*Iden';
 D(4,4) = mu; D(5,5) = mu; D(6,6) = mu;
 Iden=[1 1 1]';
-DM=2*mu*eye(3) + lambda*Iden*Iden';
+%DM=2*mu*eye(3) + lambda*Iden*Iden';
 L = zeros(3,3);
+Dtan = zeros(6,6);
 stressN=[0 0 0 0 0 0]';
 deps=[0 0 0 0 0 0]';
 alphaN = [0 0 0 0 0 0]';
@@ -20,14 +21,18 @@ bMN=[1 1 1 0 0 0]';
 alphaMN = [0 0 0]';
 epMN=0;
 for i=1:15
+    DM=2*mu*eye(3) + lambda*Iden*Iden';
     deps(4) = 0.004; L(1,2) = 0.024; L(2,1) = -0.02;
     [stressRN, alphaRN] = rotatedStress(L, stressRN, alphaRN);
     [stressR, alphaR, epR]=combHard(mp,D,deps,stressRN,alphaRN,epRN);
     [stress, alpha, ep]=combHard(mp,D,deps,stressN,alphaN,epN);
     [stressM, bM, alphaM, epM]=mulPlast(mp,DM,L,bMN,alphaMN,epMN);
+    [Dtan]=mulPlastTan(mp,DM,L,bMN,alphaMN,epMN);
     X(i)=i*deps(4);Y1(i)=stress(4);Y2(i)=stressR(4);Y3(i)=stressM(4);
     stressN = stress; alphaN = alpha; epN = ep;
     stressRN = stressR; alphaRN = alphaR; epRN = epR;
     bMN=bM; alphaMN = alphaM; epMN = epM;
+  %   csvwrite('De.csv',Dtan)
 end
+Y3
 X = [0 X]; Y1=[0 Y1]; Y2=[0 Y2]; Y3 = [0 Y3]; plot(X,Y1,X,Y2,X,Y3);
